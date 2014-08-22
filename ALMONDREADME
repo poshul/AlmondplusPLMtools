@@ -1,0 +1,9 @@
+The code contained here works with the Almond+ SDK and Firmware R065.
+I have no commercial relationship with Securifi.
+
+The almond+ is shipped with drivers for FTDI based serial to usb adapters. I've had no luck adding drivers for other adapters (though YMMV). To compile with the SDK, set the relevant variables in the makefile and run make. Create a file "insteon.conf" from the example file and add devices and scenes based on your setup (device addresses are found on a sticker on your device, and devices need to be added to the insteon network physically (hold button on modem, then hold button on device) before they will work with PLMtools). Next copy over the executables to the router, modify the BINDIR and CONFDIR variables in the "insteon" shell script. Then run commands with that script.
+
+Advanced operations:
+You can use plmsend to send command sequences to the modem directly (see http://www.smarthome.com/manuals/2412sdevguide.pdf for more details about the modem, and http://www.insteon.com/pdf/INSTEON_Command_Tables_20070925a.pdf for more details about insteon commands). plmcat reads strings off of the device, and plmtty opens an interactive connection.
+
+All of this is still really low level, and does not yet provide real integration into Almond+'s web or LCD interface.
