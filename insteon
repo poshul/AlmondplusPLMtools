@@ -18,7 +18,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 CONFDIR="/etc"
-BINDIR="/usr/bin"
+BINDIR="/root/bin"
 
 usage() {
 cat << end_of_usage
@@ -104,7 +104,7 @@ command="$(echo $2 | tr A-Z a-z)"
 case "$command" in
 	on)
 		if [ "$3" != "" ]; then
-			brightness=$(printf "%.2x" $(echo "255 * $3 / 100" | bc))
+			brightness=$(printf "%.2x" $(echo $((255 * $3 / 100))))
 		else
 			brightness=FF
 		fi
@@ -121,7 +121,7 @@ case "$command" in
 			then
 				LEVS=1
 			fi
-			TMP=$(echo "$LEVS % 2" | bc)
+			TMP=$(echo $(($LEVS % 2)))
 			if [ $TMP -eq 0 ]
 			then
 				echo "On level of 50% is the most inefficient." >&2
@@ -142,22 +142,23 @@ case "$command" in
 		else
 			LEV="$(${BINDIR}/insteon $1 status | sed 's/.*\(..\)$/\1/')"
 			LEV=$(printf "%d" 0x${LEV})
-
-			ANS=$(echo "$LEV * $LEVS / 255" | bc)
+#			echo "current level is $LEV"
+			ANS=$(echo $(($LEV * $LEVS / 255)))
 			TMP=$ANS
-			ANS=$(echo "$LEV * $LEVS % 255" | bc)
-			LENGTH=$(echo "length ( $ANS )" | bc)
-			ANS=$(echo "$ANS * (10 ^ $LENGTH) / 255" | bc)
-			STEP="${TMP}.${ANS}"
+			ANS=$(echo $(($LEV * $LEVS % 255)))
+			LENGTH=$(echo ${#ANS})
+			ANS=$(echo $(($ANS * (10 ^ $LENGTH) / 255)))
+#			STEP="${TMP}.${ANS}"
 #			echo "Current level $LEV is step ${STEP}"
-			ANS=$(echo "($STEP % 1) >= .5" | bc)
-			if [ $ANS -eq 1 ]
+#			echo "Current modulo is $ANS"
+#			ANS=$(echo $((($STEP % 1) >= .5)))
+			if [ $ANS -ge 5 ]
 			then
 				STEP=$(($TMP + 1))
 			else
 				STEP=$TMP
 			fi
-#			echo "Rounded step is ${STEP}"
+			echo "Rounded step is ${STEP}"
 			if [ "$command" == "bright" ]
 			then
 				((STEP++))
@@ -175,7 +176,7 @@ case "$command" in
 			fi
 #			echo "Next step is $STEP"
 
-			ANS=$(echo "$STEP * 255 / $LEVS" | bc)
+			ANS=$(echo $(($STEP * 255 / $LEVS)))
 			brightness=$(printf "%.2X" $ANS)
 			${BINDIR}/plmsend -t $TO -d "$DEV" 0262${device}${HOPS}11${brightness}
 		fi
@@ -190,7 +191,7 @@ case "$command" in
 		LEVEL="$(${BINDIR}/plmsend -t $TO -d "$DEV" 0262${device}${HOPS}1900 | sed 's/^.*\(..\)$/\1/')"
 		if [ "$LEVEL" != "" ]; then
 			LEVEL=$(printf "%d" 0x${LEVEL})
-			LEVEL=$(echo "$LEVEL * 100 / 255" | bc)
+			LEVEL=$(echo $(($LEVEL * 100 / 255)))
 			echo "$LEVEL"
 		fi
 		;;
